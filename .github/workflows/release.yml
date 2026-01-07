@@ -8,9 +8,9 @@ on:
   # allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# GITHUB_TOKEN permissions to allow deployment to GH pages
+# necessary GITHUB_TOKEN permissions
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -229,6 +229,7 @@ jobs:
           rmdir mac-intel
           rmdir mac-arm64
           rmdir linux-x64
+          rm -rf github-pages
           ls -R
 
       - name: Create release
