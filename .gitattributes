@@ -1,0 +1,4 @@
+# no manual merging
+pnpm-lock.yaml merge=binary
+
+* text=auto eol=lf

@@ -1,0 +1,35 @@
+tabWidth: 2
+printWidth: 120
+singleQuote: false
+bracketSameLine: true
+semi: true
+trailingComma: es5
+arrowParens: always
+proseWrap: always
+singleAttributePerLine: true
+importOrderTypeScriptVersion: 5.2.2
+tailwindStylesheet: "./src/global.css"
+tailwindFunctions:
+  - clsx
+  - cn
+  - cva
+importOrder:
+  - "<BUILT_IN_MODULES>"
+  - "<THIRD_PARTY_MODULES>"
+  - ""
+  - "^(@2702rebels|@ui)"
+  - ""
+  - "^[.]"
+  - ""
+  - "<TYPES>"
+  - "<TYPES>^(@2702rebels|@ui)"
+  - "<TYPES>^[.]"
+# [!] prettier-plugin-tailwindcss MUST be last plugin in the list
+plugins:
+  - "@ianvs/prettier-plugin-sort-imports"
+  - "prettier-plugin-astro"
+  - "prettier-plugin-tailwindcss"
+overrides:
+  - files: "*.astro"
+    options:
+      parser: astro

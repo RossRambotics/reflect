@@ -1,0 +1,11 @@
+{
+  "extends": "@2702rebels/typescript-config/vite.json",
+  "include": ["src"],
+  "references": [{ "path": "./tsconfig.node.json" }],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@ui/*": ["./src/components/*"]
+    }
+  }
+}

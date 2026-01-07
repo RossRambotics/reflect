@@ -1,0 +1,22 @@
+{
+  "identifier": "main",
+  "description": "Capability for the main window",
+  "local": true,
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "store:default",
+    "core:window:allow-set-title",
+    "dialog:allow-save",
+    "dialog:allow-open",
+    "fs:default",
+    "fs:allow-read-text-file",
+    "fs:allow-write-text-file",
+    "fs:allow-read",
+    "fs:allow-exists",
+    {
+      "identifier": "fs:scope",
+      "allow": ["**/*"]
+    }
+  ]
+}

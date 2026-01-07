@@ -1,0 +1,241 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+  # allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# GITHUB_TOKEN permissions to allow deployment to GH pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    env:
+      MACOSX_DEPLOYMENT_TARGET: 14.5
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - artifact-name: web
+            os: ubuntu-latest
+
+          - artifact-name: win-x64
+            os: windows-latest
+            tauri-build-flags: --target x86_64-pc-windows-msvc -v -- --workspace
+
+          - artifact-name: win-arm64
+            os: windows-latest
+            tauri-build-flags: --target aarch64-pc-windows-msvc -v -- --workspace
+
+          - artifact-name: mac-intel
+            os: macos-latest
+            tauri-build-flags: --target x86_64-apple-darwin -v -- --workspace
+
+          - artifact-name: mac-arm64
+            os: macos-latest
+            tauri-build-flags: --target aarch64-apple-darwin -v -- --workspace
+
+          - artifact-name: linux-x64
+            os: ubuntu-latest
+            tauri-build-flags: --target x86_64-unknown-linux-gnu -v -- --workspace
+
+    name: ${{ matrix.artifact-name }}
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          token: ${{secrets.GITHUB_TOKEN}}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install Linux dependencies
+        if: matrix.artifact-name == 'linux-x64'
+        # see https://v2.tauri.app/start/prerequisites/#linux
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            build-essential \
+            curl \
+            wget \
+            file \
+            libxdo-dev \
+            libssl-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev
+
+      - name: Install pnpm dependencies
+        run: pnpm install
+        continue-on-error: true
+
+      - name: Install Windows ARM64 Rust compiler
+        if: matrix.artifact-name == 'win-arm64'
+        run: rustup target install aarch64-pc-windows-msvc
+
+      - name: Install MacOS Intel Rust compiler
+        if: matrix.artifact-name == 'mac-intel'
+        run: rustup target add x86_64-apple-darwin
+
+      - name: Setup sccache
+        if: matrix.artifact-name != 'web'
+        uses: mozilla-actions/sccache-action@v0.0.9
+
+      - name: Package web artifacts
+        if: matrix.artifact-name == 'web'
+        run: pnpm build
+
+      - name: Build app package
+        if: matrix.artifact-name != 'web'
+        run: pnpm build-app ${{ matrix.tauri-build-flags }}
+        env:
+          RUSTC_WRAPPER: sccache
+          SCCACHE_GHA_ENABLED: true
+
+      - name: Package Windows x64 artifacts
+        if: matrix.artifact-name == 'win-x64'
+        working-directory: ./src-tauri
+        run: |
+          Compress-Archive -DestinationPath ${{ matrix.artifact-name }}.zip -Path target/x86_64-pc-windows-msvc/release/reflect.exe,target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
+
+      - name: Package Windows ARM64 artifacts
+        if: matrix.artifact-name == 'win-arm64'
+        working-directory: ./src-tauri
+        run: |
+          Compress-Archive -DestinationPath ${{ matrix.artifact-name }}.zip -Path target/aarch64-pc-windows-msvc/release/reflect.exe,target/aarch64-pc-windows-msvc/release/bundle/nsis/*.exe
+
+      - name: Package MacOS Intel artifacts
+        if: matrix.artifact-name == 'mac-intel'
+        working-directory: ./src-tauri
+        run: |
+          zip -j ${{ matrix.artifact-name }}.zip target/x86_64-apple-darwin/release/reflect target/x86_64-apple-darwin/release/bundle/dmg/*.dmg
+
+      - name: Package MacOS ARM64 artifacts
+        if: matrix.artifact-name == 'mac-arm64'
+        working-directory: ./src-tauri
+        run: |
+          zip -j ${{ matrix.artifact-name }}.zip target/aarch64-apple-darwin/release/reflect target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
+
+      - name: Package Linux x64 artifacts
+        if: matrix.artifact-name == 'linux-x64'
+        working-directory: ./src-tauri
+        run: |
+          zip -j ${{ matrix.artifact-name }}.zip target/x86_64-unknown-linux-gnu/release/reflect target/x86_64-unknown-linux-gnu/release/bundle/appimage/*.AppImage target/x86_64-unknown-linux-gnu/release/bundle/deb/*.deb target/x86_64-unknown-linux-gnu/release/bundle/rpm/*.rpm
+
+      - name: Setup GH pages
+        if: matrix.artifact-name == 'web'
+        uses: actions/configure-pages@v5
+
+      - name: Upload web artifacts
+        if: matrix.artifact-name == 'web'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ./dist/
+
+      - name: Upload app artifacts
+        if: matrix.artifact-name != 'web'
+        uses: actions/upload-artifact@v6
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: ./src-tauri/${{ matrix.artifact-name }}.zip
+
+  release:
+    name: Create draft release
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{steps.deployment.outputs.page_url}}
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Read version
+        run: |
+          TAG=${{ github.ref_name }}
+          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
+
+      - name: Deploy GH pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v7
+        with:
+          path: artifacts
+
+      - name: Prepare Windows x64 artifacts
+        working-directory: artifacts/win-x64
+        run: |
+          unzip -o win-x64.zip
+          rm win-x64.zip
+          mv reflect.exe ../Reflect-${VERSION}.exe
+          mv Reflect_*_x64-setup.exe ../Reflect-${VERSION}-win-x64-setup.exe
+
+      - name: Prepare Windows ARM64 artifacts
+        working-directory: artifacts/win-arm64
+        run: |
+          unzip -o win-arm64.zip
+          rm win-arm64.zip
+          mv reflect.exe ../Reflect-${VERSION}-arm64.exe
+          mv Reflect_*_arm64-setup.exe ../Reflect-${VERSION}-win-arm64-setup.exe
+
+      - name: Prepare MacOS Intel artifacts
+        working-directory: artifacts/mac-intel
+        run: |
+          unzip -o mac-intel.zip
+          rm mac-intel.zip
+          zip -j ../Reflect-${VERSION}-mac-intel.zip reflect
+          rm reflect
+          mv Reflect_*_x64.dmg ../Reflect-${VERSION}-mac-intel.dmg
+
+      - name: Prepare MacOS ARM64 artifacts
+        working-directory: artifacts/mac-arm64
+        run: |
+          unzip -o mac-arm64.zip
+          rm mac-arm64.zip
+          zip -j ../Reflect-${VERSION}-mac-arm64.zip reflect
+          rm reflect
+          mv Reflect_*_aarch64.dmg ../Reflect-${VERSION}-mac-arm64.dmg
+
+      - name: Prepare Linux x64 artifacts
+        working-directory: artifacts/linux-x64
+        run: |
+          unzip -o linux-x64.zip
+          rm linux-x64.zip
+          zip -j ../Reflect-${VERSION}-linux-x64.zip reflect
+          rm reflect
+          mv Reflect_*_amd64.AppImage ../Reflect-${VERSION}-linux-x64.AppImage
+          mv Reflect_*_amd64.deb ../Reflect-${VERSION}-linux-x64.deb
+          mv Reflect-*.x86_64.rpm ../Reflect-${VERSION}-linux-x64.rpm
+
+      - name: Cleanup
+        working-directory: artifacts
+        run: |
+          rmdir win-x64
+          rmdir win-arm64
+          rmdir mac-intel
+          rmdir mac-arm64
+          rmdir linux-x64
+          ls -R
+
+      - name: Create release
+        uses: ncipollo/release-action@v1
+        with:
+          name: Reflect ${VERSION}
+          tag: ${{ github.ref_name }}
+          artifacts: "artifacts/*"
+          draft: true
+          prerelease: true

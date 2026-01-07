@@ -1,0 +1,14 @@
+# package manager files
+pnpm-lock.yaml
+yarn.lock
+pnpm-lock.json
+
+# dependencies
+node_modules
+
+# tauri debug
+src-tauri/target
+src/mock
+
+# documentation
+docs/src/content/docs/**

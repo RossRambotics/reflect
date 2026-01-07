@@ -1,0 +1,76 @@
+{
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "never",
+    "source.fixAll.eslint": "explicit"
+  },
+  "eslint.quiet": false,
+  "eslint.validate": ["typescript", "typescriptreact"],
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "files.trimTrailingWhitespace": true,
+  "files.eol": "\n",
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2
+  },
+  "[yaml]": {
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2,
+    "editor.autoIndent": "advanced"
+  },
+  "[astro]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  // allow comments in JSON files (such as configuration files)
+  "files.associations": {
+    "*.json": "jsonc",
+    "*.css": "tailwindcss"
+  },
+  "tailwindCSS.classFunctions": ["clsx", "cn", "cva"],
+  "tailwindCSS.experimental.configFile": {
+    "src/global.css": ["src/**"]
+  },
+  "cSpell.words": [
+    "bitfield",
+    "bitshift",
+    "choreo",
+    "figtree",
+    "immer",
+    "kode",
+    "Lookback",
+    "lucide",
+    "msgpack",
+    "networktables",
+    "ntcore",
+    "precommit",
+    "preinstall",
+    "protobuf",
+    "pubuid",
+    "setproperties",
+    "shadcn",
+    "Subchannel",
+    "subuid",
+    "tailwindcss",
+    "tanstack",
+    "TAURI",
+    "teleop",
+    "unannounce",
+    "wpidata",
+    "WPILIB",
+    "WPILOG",
+    "xyflow",
+    "zustand"
+  ],
+  // required since rust-analyzer does not auto-discover in nested folders
+  "rust-analyzer.linkedProjects": ["src-tauri/Cargo.toml"],
+  "prettier.documentSelectors": ["**/*.astro"]
+}

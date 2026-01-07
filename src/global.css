@@ -1,0 +1,174 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Figtree Variable", "ui-sans-serif";
+  --font-mono: "Kode Mono Variable", ui-monospace;
+
+  --z-index-overlay: 45;
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-xs: calc(var(--radius) - 6px);
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+  --animate-wiggle: wiggle 0.2s ease-in-out infinite;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+  @keyframes wiggle {
+    0%,
+    100% {
+      transform: rotate(-0.5deg);
+    }
+    50% {
+      transform: rotate(0.75deg);
+    }
+  }
+}
+
+/*
+  The default border color has changed to `currentColor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+}
+
+@utility bg-spotlight {
+  background: radial-gradient(
+    50% 45% at 50% 50%,
+    rgba(75, 85, 99, 0.2) 0%,
+    rgba(55, 65, 81, 0.4) 25%,
+    rgba(31, 41, 55, 0) 100%
+  );
+}
+
+@layer base {
+  :root {
+    --background: var(--color-white);
+    --foreground: var(--color-slate-950);
+
+    --card: var(--color-white);
+    --card-foreground: var(--color-slate-950);
+
+    --popover: var(--color-white);
+    --popover-foreground: var(--color-slate-950);
+
+    --primary: var(--color-slate-900);
+    --primary-foreground: var(--color-slate-50);
+
+    --secondary: var(--color-slate-100);
+    --secondary-foreground: var(--color-slate-900);
+
+    --muted: var(--color-slate-100);
+    --muted-foreground: var(--color-slate-500);
+
+    --accent: var(--color-sky-100);
+    --accent-foreground: var(--color-slate-900);
+
+    --destructive: var(--color-red-500);
+    --destructive-foreground: var(--color-slate-50);
+
+    --border: var(--color-slate-200);
+    --input: var(--color-slate-200);
+    --ring: var(--color-slate-950);
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: var(--color-slate-950);
+    --foreground: var(--color-slate-50);
+
+    --card: var(--color-slate-950);
+    --card-foreground: var(--color-slate-50);
+
+    --popover: var(--color-slate-950);
+    --popover-foreground: var(--color-slate-50);
+
+    --primary: var(--color-slate-50);
+    --primary-foreground: var(--color-slate-900);
+
+    --secondary: var(--color-slate-800);
+    --secondary-foreground: var(--color-slate-50);
+
+    --muted: var(--color-slate-800);
+    --muted-foreground: var(--color-slate-400);
+
+    --accent: var(--color-sky-800);
+    --accent-foreground: var(--color-slate-50);
+
+    --destructive: var(--color-red-600);
+    --destructive-foreground: var(--color-slate-50);
+
+    --border: var(--color-slate-800);
+    --input: var(--color-slate-800);
+    --ring: var(--color-slate-500);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html,
+  body {
+    @apply bg-background text-foreground;
+  }
+}

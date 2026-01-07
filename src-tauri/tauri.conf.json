@@ -1,0 +1,38 @@
+{
+  "productName": "Reflect",
+  "mainBinaryName": "reflect",
+  "version": "2025.0.6",
+  "identifier": "com.2702rebels",
+  "build": {
+    "beforeDevCommand": "pnpm dev",
+    "beforeBuildCommand": "pnpm build",
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:1420"
+  },
+  "bundle": {
+    "active": true,
+    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"],
+    "windows": {
+      "wix": {
+        "version": "25.0.3",
+        "bannerPath": "icons/top-banner.bmp",
+        "dialogImagePath": "icons/side-banner.bmp"
+      }
+    }
+  },
+  "plugins": {},
+  "app": {
+    "security": {
+      "csp": null
+    },
+    "windows": [
+      {
+        "title": "Reflect v2025.0.6",
+        "width": 1200,
+        "height": 800,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ]
+  }
+}
