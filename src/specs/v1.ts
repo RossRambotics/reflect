@@ -11,6 +11,7 @@ export const WidgetTypeValues = [
   "field2d",
   "robot3d",
   "chart.line",
+  "value",
   "camera",
   "2025.reef.coral",
   "2025.reef.algae",

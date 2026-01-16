@@ -7,11 +7,13 @@ import { WidgetPowerPdhDescriptor, WidgetPowerPdpDescriptor } from "./WidgetPowe
 import { WidgetReefAlgaeDescriptor } from "./WidgetReefAlgae";
 import { WidgetReefCoralDescriptor } from "./WidgetReefCoral";
 import { WidgetToggleDescriptor } from "./WidgetToggle";
+import { WidgetValueDescriptor } from "./WidgetValue";
 
 import type { WidgetType } from "../specs";
 import type { WidgetDescriptor } from "./types";
 
 export const WidgetRegistry: Record<WidgetType, WidgetDescriptor> = [
+  WidgetValueDescriptor,
   WidgetToggleDescriptor,
   WidgetChooserDescriptor,
   WidgetField2dDescriptor,
