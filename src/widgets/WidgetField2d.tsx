@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import field2024choreo from "../assets/field-2024-choreo.svg";
 import field2024 from "../assets/field-2024.webp";
 import field2025 from "../assets/field-2025.webp";
+import field2026empty from "../assets/field-2026-empty.webp";
+import field2026 from "../assets/field-2026.webp";
 import { useElementSize } from "../hooks/useElementSize";
 import { cn } from "../lib/utils";
 import { EditorBlock } from "./parts/EditorBlock";
@@ -19,7 +21,7 @@ import type { DataChannelRecord, DataType, StructuredTypeDescriptor } from "@270
 import type { WidgetComponentProps, WidgetDescriptor, WidgetEditorProps } from "./types";
 
 const propsSchema = z.object({
-  style: z.enum(["default", "2025", "2024", "2024-choreo"]),
+  style: z.enum(["default", "2026", "2026-empty", "2025", "2024", "2024-choreo"]),
   orientation: z.enum(["0", "90", "180", "270"]),
   bumperSizeInch: z.number().positive().lte(35),
 });
@@ -63,12 +65,14 @@ const createField = (
 
 const ZERO = [0, 0, 0] as const;
 const FIELDS: Record<Exclude<PropsType["style"], "default">, FieldSpec> = {
+  "2026": createField(field2026, 16.541, 8.0692, [4196, 2035], [256, 118, 3939, 1914]),
+  "2026-empty": createField(field2026empty, 16.541, 8.0692, [4196, 2035], [256, 118, 3939, 1914]),
   "2025": createField(field2025, 17.5482, 8.0519, [3172, 1527], [120, 91, 3052, 1438]),
   "2024": createField(field2024, 16.54175, 8.21055, [3112, 1556], [150, 79, 2961, 1476]),
   "2024-choreo": createField(field2024choreo, 16.54175, 8.21055, [2812, 1398], [0, 0, 2811, 1397]),
 } as const;
 
-const getField = (style: PropsType["style"]) => FIELDS[style === "default" ? "2025" : style];
+const getField = (style: PropsType["style"]) => FIELDS[style === "default" ? "2026-empty" : style];
 
 /**
  * Converts robot position (in meters) to field offsets in pixels
@@ -203,6 +207,8 @@ const Editor = ({ props, onPropsChange }: WidgetEditorProps<PropsType>) => {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="default">Default</SelectItem>
+            <SelectItem value="2026-empty">2026 (No Fuel)</SelectItem>
+            <SelectItem value="2026">2026 (With Fuel)</SelectItem>
             <SelectItem value="2025">2025 (Default)</SelectItem>
             <SelectItem value="2024">2024 (Default)</SelectItem>
             <SelectItem value="2024-choreo">2024 (Choreo version)</SelectItem>
