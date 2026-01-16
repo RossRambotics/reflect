@@ -5,6 +5,7 @@ import { getOrAdd } from "@2702rebels/shared/iterable";
 import { ScrollArea } from "@ui/scroll-area";
 import { Separator } from "@ui/separator";
 
+import { useSettingsStore } from "../stores/Settings";
 import { WidgetRegistry } from "../widgets/WidgetRegistry";
 import { WidgetGalleryItem } from "./WidgetGalleryItem";
 
@@ -53,10 +54,11 @@ const DraggableWidgetGalleryItem = (props: WidgetGalleryItemProps) => {
 };
 
 export const WidgetGallery = () => {
+  const season = useSettingsStore.use.season() ?? __SEASON__;
   const items = useMemo(() => {
     // separate evergreen from season-specific widgets
     const evergreen: Array<React.ReactNode> = [];
-    const season = new Map<number, Array<React.ReactNode>>();
+    const seasoned = new Map<number, Array<React.ReactNode>>();
 
     Object.values(WidgetRegistry).forEach((_) => {
       const item = (
@@ -67,7 +69,9 @@ export const WidgetGallery = () => {
       );
 
       if (_.season != null) {
-        getOrAdd(season, _.season, () => []).push(item);
+        if (_.season === season) {
+          getOrAdd(seasoned, _.season, () => []).push(item);
+        }
       } else {
         evergreen.push(item);
       }
@@ -75,15 +79,15 @@ export const WidgetGallery = () => {
 
     return {
       evergreen,
-      season: Array.from(season.entries()).sort((a, b) => b[0] - a[0]),
+      seasoned: Array.from(seasoned.entries()).sort((a, b) => b[0] - a[0]),
     };
-  }, []);
+  }, [season]);
 
   return (
     <ScrollArea className="overflow-hidden">
       <div className="flex w-full flex-col gap-3 p-3">
         {items.evergreen}
-        {items.season.map(([season, items]) => (
+        {items.seasoned.map(([season, items]) => (
           <Fragment key={season}>
             <div className="flex items-center gap-1 text-sm select-none">
               {season}

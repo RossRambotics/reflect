@@ -12,6 +12,8 @@ import type { Optional } from "@2702rebels/shared/utility";
 export type SettingsStore = {
   /** Hydration state */
   hasHydrated: boolean;
+  /** Season year */
+  season: number | null;
   /** Team number */
   teamNumber: number | null;
   /** Network discovery method */
@@ -43,6 +45,7 @@ export type SettingsStoreActions = {
 
 const defaultState: SettingsStore = {
   hasHydrated: false,
+  season: null,
   teamNumber: null,
   networkDiscoveryMethod: "localhost",
   networkIpAddress: null,

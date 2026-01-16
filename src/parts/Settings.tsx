@@ -33,6 +33,12 @@ function parseTeamNumber(value: string) {
   return Number.isNaN(teamNumber) ? null : teamNumber;
 }
 
+function parseSeason(value: string) {
+  if (!value || value === "current") return null;
+  const season = parseInt(value, 10);
+  return Number.isNaN(season) ? null : season;
+}
+
 function validateNetworkDiscovery(
   method: "ds" | "team" | "localhost" | "dns" | "custom",
   teamNumber: number | null,
@@ -53,6 +59,7 @@ function validateNetworkDiscovery(
 // const ipv4schema = z.string().ip({ version: "v4", message: "Valid IPv4 address required" });
 
 const SettingsPanel = ({ disabled }: ModalProps) => {
+  const season = useSettingsStore.use.season();
   const teamNumber = useSettingsStore.use.teamNumber();
   const networkDiscoveryMethod = useSettingsStore.use.networkDiscoveryMethod();
   const networkIpAddress = useSettingsStore.use.networkIpAddress();
@@ -169,6 +176,21 @@ const SettingsPanel = ({ disabled }: ModalProps) => {
           <div className="flex flex-col gap-1 border-y bg-secondary/20 px-4 py-4 select-none">
             <h2 className="text-lg font-medium">User Interface</h2>
             <p className="text-sm text-muted-foreground">Configure common UI preferences</p>
+          </div>
+          <div className="mx-4 flex flex-col gap-2">
+            <Label className="ml-1">Season</Label>
+            <Select
+              value={season ? season.toFixed() : "current"}
+              onValueChange={(v) => useSettingsStore.set.season(parseSeason(v))}>
+              <SelectTrigger>
+                <SelectValue placeholder="Current season" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="current">Current ({__SEASON__})</SelectItem>
+                <SelectItem value="2026">2026</SelectItem>
+                <SelectItem value="2025">2025</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="mx-4 flex items-center gap-2">
             <Switch

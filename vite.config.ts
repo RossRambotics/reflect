@@ -29,6 +29,7 @@ export default defineConfig(async () => ({
   },
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
+    __SEASON__: parseInt(pkg.version.substring(0, 4), 10),
   },
   // to access the Tauri environment variables set by the CLI with information about the current target
   envPrefix: ["VITE_", "TAURI_"],
