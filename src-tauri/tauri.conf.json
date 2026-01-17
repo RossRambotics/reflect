@@ -1,7 +1,7 @@
 {
   "productName": "Reflect",
   "mainBinaryName": "reflect",
-  "version": "2026.0.1",
+  "version": "2026.0.3",
   "identifier": "com.2702rebels",
   "build": {
     "beforeDevCommand": "pnpm dev",
@@ -12,6 +12,10 @@
   "bundle": {
     "active": true,
     "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"],
+    "macOS": {
+      "minimumSystemVersion": "14.5",
+      "signingIdentity": "-"
+    },
     "windows": {
       "wix": {
         "version": "25.0.3",
@@ -27,7 +31,7 @@
     },
     "windows": [
       {
-        "title": "Reflect v2026.0.1",
+        "title": "Reflect 2026.0.3",
         "width": 1200,
         "height": 800,
         "resizable": true,
