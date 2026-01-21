@@ -1,3 +1,4 @@
+import { WidgetAlertsDescriptor } from "./WidgetAlerts";
 import { WidgetCameraDescriptor } from "./WidgetCamera";
 import { WidgetChartLineDescriptor } from "./WidgetChartLine";
 import { WidgetChooserDescriptor } from "./WidgetChooser";
@@ -23,6 +24,7 @@ export const WidgetRegistry: Record<WidgetType, WidgetDescriptor> = [
   WidgetSliderDescriptor,
   WidgetField2dDescriptor,
   WidgetFMS,
+  WidgetAlertsDescriptor,
   WidgetChartLineDescriptor,
   WidgetPowerPdhDescriptor,
   WidgetPowerPdpDescriptor,

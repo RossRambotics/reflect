@@ -16,6 +16,7 @@ export const WidgetTypeValues = [
   "value",
   "camera",
   "fms",
+  "alerts",
   "2025.reef.coral",
   "2025.reef.algae",
 ] as const;
