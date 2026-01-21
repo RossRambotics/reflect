@@ -358,7 +358,7 @@ const Editor = ({
           onChange={(v) =>
             onPropsChange({
               ...props,
-              thresholdHiCurrent: v,
+              thresholdHiCurrent: Number.isFinite(v) ? v : 40,
             })
           }
           minValue={0}
@@ -373,7 +373,7 @@ const Editor = ({
           onChange={(v) =>
             onPropsChange({
               ...props,
-              thresholdLoCurrent: v,
+              thresholdLoCurrent: Number.isFinite(v) ? v : variant === "pdh" ? 15 : 30,
             })
           }
           minValue={0}

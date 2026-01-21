@@ -23,9 +23,9 @@ const numericFormat = z.object({
 const propsSchema = z.object({
   title: z.string().optional(),
   valueFormat: numericFormat.optional(),
-  alignment: z.enum(["center", "start", "end"]),
-  size: z.enum(["lg", "xl", "2xl", "3xl", "4xl", "5xl"]),
-  mono: z.boolean(),
+  alignment: z.enum(["center", "start", "end"]).default("center"),
+  size: z.enum(["lg", "xl", "2xl", "3xl", "4xl", "5xl"]).default("lg"),
+  mono: z.boolean().default(false),
 });
 
 type PropsType = z.infer<typeof propsSchema>;
@@ -161,7 +161,7 @@ const Editor = ({ props, onPropsChange }: WidgetEditorProps<PropsType>) => {
               ...props,
               valueFormat: {
                 ...props.valueFormat,
-                maximumFractionDigits: v,
+                maximumFractionDigits: Number.isFinite(v) ? v : 0,
               },
             })
           }
@@ -195,9 +195,9 @@ export const WidgetValueDescriptor: WidgetDescriptor<PropsType> = {
   props: {
     schema: propsSchema,
     defaultValue: {
-      alignment: "center",
-      size: "lg",
-      mono: false,
+      alignment: propsSchema.shape.alignment.def.defaultValue,
+      size: propsSchema.shape.size.def.defaultValue,
+      mono: propsSchema.shape.mono.def.defaultValue,
       valueFormat: {
         maximumFractionDigits: 2,
       },

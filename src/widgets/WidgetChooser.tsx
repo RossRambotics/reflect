@@ -16,7 +16,7 @@ import type { WidgetComponentProps, WidgetDescriptor, WidgetEditorProps } from "
 
 const propsSchema = z.object({
   title: z.string().optional(),
-  interactive: z.boolean().optional(),
+  interactive: z.boolean().default(true),
 });
 
 const pathSelected = ["selected"];
@@ -152,7 +152,7 @@ export const WidgetChooserDescriptor: WidgetDescriptor<PropsType> = {
   props: {
     schema: propsSchema,
     defaultValue: {
-      interactive: true,
+      interactive: propsSchema.shape.interactive.def.defaultValue,
     },
     editor: (props) => <Editor {...props} />,
   },

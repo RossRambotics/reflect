@@ -38,9 +38,9 @@ const tickLabelsYaw = (clockwise: boolean, symmetric: boolean) =>
 const radians = (v: number) => (v * Math.PI) / 180;
 
 const propsSchema = z.object({
-  variant: z.enum(["yaw", "pitch", "roll"]),
-  yawClockwise: z.boolean(),
-  yawSymmetric: z.boolean(),
+  variant: z.enum(["yaw", "pitch", "roll"]).default("yaw"),
+  yawClockwise: z.boolean().default(false),
+  yawSymmetric: z.boolean().default(false),
 });
 
 type PropsType = z.infer<typeof propsSchema>;
@@ -338,9 +338,9 @@ export const WidgetGyroDescriptor: WidgetDescriptor<PropsType> = {
   props: {
     schema: propsSchema,
     defaultValue: {
-      variant: "yaw",
-      yawClockwise: false,
-      yawSymmetric: false,
+      variant: propsSchema.shape.variant.def.defaultValue,
+      yawClockwise: propsSchema.shape.yawClockwise.def.defaultValue,
+      yawSymmetric: propsSchema.shape.yawSymmetric.def.defaultValue,
     },
     editor: (props) => <Editor {...props} />,
     menu: (props) => <QuickMenu {...props} />,

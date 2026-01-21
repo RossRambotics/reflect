@@ -11,14 +11,12 @@ import { Slot } from "./slot";
 import type { DataChannelRecord, DataType } from "@2702rebels/wpidata/abstractions";
 import type { WidgetComponentProps, WidgetDescriptor, WidgetEditorProps } from "./types";
 
-const TRUE_COLOR = "#00c951";
-const FALSE_COLOR = "#fb2c36";
 
 const propsSchema = z.object({
   title: z.string().optional(),
   boolean: z.object({
-    true: z.string().default(TRUE_COLOR),
-    false: z.string().default(FALSE_COLOR),
+    true: z.string().default("#00c951"),
+    false: z.string().default("#fb2c36"),
   }),
 });
 
@@ -94,8 +92,8 @@ const Editor = ({ props, onPropsChange }: WidgetEditorProps<PropsType>) => {
             onPropsChange({
               ...props,
               boolean: {
-                true: TRUE_COLOR,
-                false: FALSE_COLOR,
+                true: propsSchema.shape.boolean.def.shape.true.def.defaultValue,
+                false: propsSchema.shape.boolean.def.shape.false.def.defaultValue,
               },
             })
           }
@@ -181,8 +179,8 @@ export const WidgetColorDescriptor: WidgetDescriptor<PropsType> = {
     schema: propsSchema,
     defaultValue: {
       boolean: {
-        true: TRUE_COLOR,
-        false: FALSE_COLOR,
+        true: propsSchema.shape.boolean.def.shape.true.def.defaultValue,
+        false: propsSchema.shape.boolean.def.shape.false.def.defaultValue,
       },
     },
     editor: (props) => <Editor {...props} />,

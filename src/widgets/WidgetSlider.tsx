@@ -28,7 +28,7 @@ const propsSchema = z.object({
   valueFormat: numericFormat.optional(),
   min: z.number().default(-1),
   max: z.number().default(1),
-  step: z.number().default(0.1),
+  step: z.number().nonnegative().default(0.1),
 });
 
 type PropsType = z.infer<typeof propsSchema>;
@@ -141,7 +141,7 @@ const Editor = ({ props, onPropsChange }: WidgetEditorProps<PropsType>) => {
             onChange={(v) =>
               onPropsChange({
                 ...props,
-                min: Number.isFinite(v) ? v : -1,
+                min: Number.isFinite(v) ? v : propsSchema.shape.min.def.defaultValue,
               })
             }
           />
@@ -155,7 +155,7 @@ const Editor = ({ props, onPropsChange }: WidgetEditorProps<PropsType>) => {
             onChange={(v) =>
               onPropsChange({
                 ...props,
-                max: Number.isFinite(v) ? v : 1,
+                max: Number.isFinite(v) ? v : propsSchema.shape.max.def.defaultValue,
               })
             }
           />
@@ -169,7 +169,7 @@ const Editor = ({ props, onPropsChange }: WidgetEditorProps<PropsType>) => {
             onChange={(v) =>
               onPropsChange({
                 ...props,
-                max: Number.isFinite(v) ? v : 0.1,
+                max: Number.isFinite(v) ? v : propsSchema.shape.step.def.defaultValue,
               })
             }
           />
@@ -185,7 +185,7 @@ const Editor = ({ props, onPropsChange }: WidgetEditorProps<PropsType>) => {
               ...props,
               valueFormat: {
                 ...props.valueFormat,
-                maximumFractionDigits: v,
+                maximumFractionDigits: Number.isFinite(v) ? v : 0,
               },
             })
           }
@@ -220,9 +220,9 @@ export const WidgetSliderDescriptor: WidgetDescriptor<PropsType> = {
     schema: propsSchema,
     defaultValue: {
       interactive: false,
-      min: -1,
-      max: 1,
-      step: 0.1,
+      min: propsSchema.shape.min.def.defaultValue,
+      max: propsSchema.shape.max.def.defaultValue,
+      step: propsSchema.shape.step.def.defaultValue,
       valueFormat: {
         maximumFractionDigits: 2,
       },

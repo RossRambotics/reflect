@@ -241,7 +241,7 @@ const Editor = ({ props, onPropsChange }: WidgetEditorProps<PropsType>) => {
               ...props,
               valueFormat: {
                 ...props.valueFormat,
-                maximumFractionDigits: v,
+                maximumFractionDigits: Number.isFinite(v) ? v : 0,
               },
             })
           }
@@ -259,7 +259,7 @@ const Editor = ({ props, onPropsChange }: WidgetEditorProps<PropsType>) => {
               ...props,
               axisFormat: {
                 ...props.axisFormat,
-                maximumFractionDigits: v,
+                maximumFractionDigits: Number.isFinite(v) ? v : 0,
               },
             })
           }
