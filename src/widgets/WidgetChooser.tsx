@@ -9,10 +9,17 @@ import { EditorBlock } from "./parts/EditorBlock";
 import { EditorContainer } from "./parts/EditorContainer";
 import { EditorSwitchBlock } from "./parts/EditorSwitchBlock";
 import { Slot } from "./slot";
+import { withPreview } from "./utils";
 
 import type { DataChannelRecord, DataType, StructuredTypeDescriptor } from "@2702rebels/wpidata/abstractions";
 import type { StringChooserSendable } from "@2702rebels/wpidata/types/sendable";
 import type { WidgetComponentProps, WidgetDescriptor, WidgetEditorProps } from "./types";
+
+const previewData: ReturnType<typeof transform> = {
+  options: ["Option"],
+  active: "Option",
+  selected: "Option",
+};
 
 const propsSchema = z.object({
   title: z.string().optional(),
@@ -56,8 +63,6 @@ const transform = (
 };
 
 const Component = ({ mode, slot, data, props, publish }: WidgetComponentProps<PropsType>) => {
-  const value = data as ReturnType<typeof transform>;
-
   const interactive = props.interactive;
   const handleChange = useCallback(
     (v: string) => {
@@ -68,6 +73,7 @@ const Component = ({ mode, slot, data, props, publish }: WidgetComponentProps<Pr
     [interactive, publish]
   );
 
+  const [d, preview] = withPreview(mode, data as ReturnType<typeof transform>, previewData);
   return (
     <div className="flex h-full w-full flex-col py-2 select-none">
       <div className="mb-1 flex px-3">
@@ -78,16 +84,16 @@ const Component = ({ mode, slot, data, props, publish }: WidgetComponentProps<Pr
         </TruncateText>
       </div>
       <div className="relative grid flex-1 place-items-center px-3">
-        {value != null && (
+        {d != null && (
           <Select
-            value={value.selected}
+            value={d.selected}
             disabled={!interactive}
             onValueChange={handleChange}>
-            <SelectTrigger>
-              <SelectValue placeholder={value.active} />
+            <SelectTrigger className={preview ? "opacity-25" : undefined}>
+              <SelectValue placeholder={d.active} />
             </SelectTrigger>
             <SelectContent>
-              {value.options.map((_) => (
+              {d.options.map((_) => (
                 <SelectItem
                   key={_}
                   value={_}>

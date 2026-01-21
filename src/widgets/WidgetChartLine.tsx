@@ -15,6 +15,7 @@ import { EditorBlock } from "./parts/EditorBlock";
 import { EditorContainer } from "./parts/EditorContainer";
 import { EditorSectionHeader } from "./parts/EditorSectionHeader";
 import { Slot } from "./slot";
+import { withPreview } from "./utils";
 
 import type { DataChannelRecord, DataType } from "@2702rebels/wpidata/abstractions";
 import type { WidgetComponentProps, WidgetDescriptor, WidgetEditorProps } from "./types";
@@ -101,13 +102,14 @@ const previewData = transform(
 );
 
 const WidgetChartLineContent = ({
-  mode,
   data,
   props,
   padding,
+  preview,
 }: WidgetComponentProps<PropsType> & {
   data: NonNullable<ReturnType<typeof transform>>;
   padding: number;
+  preview?: boolean;
 }) => {
   const componentId = useId();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -176,11 +178,11 @@ const WidgetChartLineContent = ({
           <path
             d={areaGenerator(series) ?? ""}
             fill={`url(#${componentId}-gradient)`}
-            className={mode === "template" ? "opacity-25" : undefined}
+            className={preview ? "opacity-25" : undefined}
           />
           <path
             d={lineGenerator(series) ?? ""}
-            className={cn("fill-none stroke-sky-200", mode === "template" && "opacity-25 [stroke-dasharray:5]")}
+            className={cn("fill-none stroke-sky-200", preview && "opacity-25 [stroke-dasharray:5]")}
           />
         </g>
       </svg>
@@ -189,7 +191,7 @@ const WidgetChartLineContent = ({
 };
 
 const Component = ({ mode, slot, data, props }: WidgetComponentProps<PropsType>) => {
-  const d = mode === "template" ? previewData : (data as ReturnType<typeof transform>);
+  const [d, preview] = withPreview(mode, data as ReturnType<typeof transform>, previewData);
   return (
     <div className="flex h-full w-full flex-col py-2 select-none">
       <div className="mb-1 flex items-center justify-between gap-2 px-3">
@@ -206,7 +208,7 @@ const Component = ({ mode, slot, data, props }: WidgetComponentProps<PropsType>)
       </div>
       {d != null && (
         <WidgetChartLineContent
-          mode={mode}
+          preview={preview}
           data={d}
           props={props}
           padding={10}

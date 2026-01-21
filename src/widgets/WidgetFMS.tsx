@@ -166,7 +166,7 @@ const Editor = () => {
   return <EditorContainer />;
 };
 
-export const WidgetFMS: WidgetDescriptor<PropsType> = {
+export const WidgetFMSDescriptor: WidgetDescriptor<PropsType> = {
   type: "fms",
   name: "FMS",
   icon: "square-wifi",

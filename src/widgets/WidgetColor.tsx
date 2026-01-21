@@ -4,13 +4,14 @@ import { Button } from "@ui/button";
 import { Input } from "@ui/input";
 import { TruncateText } from "@ui/truncate-text";
 
+import { cn } from "../lib/utils";
 import { EditorBlock } from "./parts/EditorBlock";
 import { EditorContainer } from "./parts/EditorContainer";
 import { Slot } from "./slot";
+import { withPreview } from "./utils";
 
 import type { DataChannelRecord, DataType } from "@2702rebels/wpidata/abstractions";
 import type { WidgetComponentProps, WidgetDescriptor, WidgetEditorProps } from "./types";
-
 
 const propsSchema = z.object({
   title: z.string().optional(),
@@ -50,7 +51,7 @@ const transform = (dataType: DataType, records: ReadonlyArray<DataChannelRecord>
 };
 
 const Component = ({ mode, slot, data, props }: WidgetComponentProps<PropsType>) => {
-  const d = mode === "template" ? "#000000" : (data as ReturnType<typeof transform>);
+  const [d, preview] = withPreview(mode, data as ReturnType<typeof transform>, "#000000");
   return (
     <div className="flex h-full w-full flex-col py-2 select-none">
       <div className="mb-1 flex items-center justify-between gap-2 px-3">
@@ -62,7 +63,7 @@ const Component = ({ mode, slot, data, props }: WidgetComponentProps<PropsType>)
       </div>
       {d != null && (
         <div
-          className="mx-3 my-1 flex-auto rounded-md"
+          className={cn("mx-3 my-1 flex-auto rounded-md", preview && "opacity-25")}
           style={{ backgroundColor: typeof d === "boolean" ? (d ? props.boolean.true : props.boolean.false) : d }}
         />
       )}

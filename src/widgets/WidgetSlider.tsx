@@ -9,11 +9,13 @@ import { InputNumber } from "@ui/input-number";
 import { Slider } from "@ui/slider";
 import { TruncateText } from "@ui/truncate-text";
 
+import { cn } from "../lib/utils";
 import { EditorBlock } from "./parts/EditorBlock";
 import { EditorContainer } from "./parts/EditorContainer";
 import { EditorSectionHeader } from "./parts/EditorSectionHeader";
 import { EditorSwitchBlock } from "./parts/EditorSwitchBlock";
 import { Slot } from "./slot";
+import { withPreview } from "./utils";
 
 import type { DataChannelRecord, DataType } from "@2702rebels/wpidata/abstractions";
 import type { WidgetComponentProps, WidgetDescriptor, WidgetEditorProps } from "./types";
@@ -43,8 +45,6 @@ const transform = (dataType: DataType, records: ReadonlyArray<DataChannelRecord>
 };
 
 const Component = ({ mode, slot, data, props, publish }: WidgetComponentProps<PropsType>) => {
-  const d = mode === "template" ? 0 : (data as ReturnType<typeof transform>);
-
   const interactive = props.interactive;
   const handleChange = useCallback(
     (v: Array<number>) => {
@@ -62,6 +62,7 @@ const Component = ({ mode, slot, data, props, publish }: WidgetComponentProps<Pr
     [interactive, publish]
   );
 
+  const [d, preview] = withPreview(mode, data as ReturnType<typeof transform>, 0);
   return (
     <div className="flex h-full w-full flex-col py-2 select-none">
       <div className="mb-1 flex items-center justify-between gap-2 px-3">
@@ -77,7 +78,7 @@ const Component = ({ mode, slot, data, props, publish }: WidgetComponentProps<Pr
         </div>
       </div>
       {d != null && (
-        <div className="mx-3 my-1 flex flex-auto flex-col justify-center gap-2">
+        <div className={cn("mx-3 my-1 flex flex-auto flex-col justify-center gap-2", preview && "opacity-25")}>
           <Slider
             aria-label="Value"
             value={[d]}

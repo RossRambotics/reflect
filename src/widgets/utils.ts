@@ -351,6 +351,21 @@ export function toRotation3d(value: unknown, structuredType?: StructuredTypeDesc
 }
 
 /**
+ * Returns actual data or preview data depending on the mode.
+ */
+export function withPreview<T>(mode: "template" | "design" | undefined, data: T | undefined, previewData: T) {
+  if (mode === "template") {
+    return [previewData, true] as const;
+  }
+
+  if (mode === "design" && data === undefined) {
+    return [previewData, true] as const;
+  }
+
+  return [data, false] as const;
+}
+
+/**
  * Determines whether the widget data slot accepts the data channel.
  */
 export function canAccept(descriptor: WidgetDescriptor, channel: DataChannel) {

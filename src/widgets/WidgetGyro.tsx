@@ -12,7 +12,7 @@ import { EditorSwitchBlock } from "./parts/EditorSwitchBlock";
 import { RobotFront } from "./parts/RobotFront";
 import { RobotSide } from "./parts/RobotSide";
 import { RobotTop } from "./parts/RobotTop";
-import { toDegrees, toRotation3d } from "./utils";
+import { toDegrees, toRotation3d, withPreview } from "./utils";
 
 import type { DataChannelRecord, DataType, StructuredTypeDescriptor } from "@2702rebels/wpidata/abstractions";
 import type { WidgetComponentProps, WidgetDescriptor, WidgetEditorProps } from "./types";
@@ -191,25 +191,25 @@ const ComponentCore = ({
   );
 };
 
-const Component = ({ data, props }: WidgetComponentProps<PropsType>) => {
+const Component = ({ mode, data, props }: WidgetComponentProps<PropsType>) => {
   const { variant, yawClockwise, yawSymmetric } = props;
-  const value = data as ReturnType<typeof transform>;
+  const [d, preview] = withPreview(mode, data as ReturnType<typeof transform>, 0);
 
   return (
     <div className="h-full w-full px-3 py-2 select-none">
       <div className="mb-1 flex items-center justify-between">
         <h1 className="text-sm font-bold">{title(variant)}</h1>
         <div className="font-mono text-sm font-bold">
-          {Format.default.number(value, {
+          {Format.default.number(d, {
             maximumFractionDigits: 1,
           })}
           &deg;
         </div>
       </div>
-      {value != null && (
+      {d != null && (
         <ComponentCore
-          className="h-auto w-full"
-          value={value}
+          className={cn("h-auto w-full", preview && "opacity-25 [stroke-dasharray:1]")}
+          value={d}
           radius={50}
           variant={variant}
           yawClockwise={yawClockwise}

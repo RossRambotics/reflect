@@ -9,6 +9,7 @@ import { EditorBlock } from "./parts/EditorBlock";
 import { EditorContainer } from "./parts/EditorContainer";
 import { EditorSwitchBlock } from "./parts/EditorSwitchBlock";
 import { Slot } from "./slot";
+import { withPreview } from "./utils";
 
 import type { DataChannelRecord, DataType } from "@2702rebels/wpidata/abstractions";
 import type { WidgetComponentProps, WidgetDescriptor, WidgetEditorProps } from "./types";
@@ -35,8 +36,6 @@ const transform = (dataType: DataType, records: ReadonlyArray<DataChannelRecord>
 };
 
 const Component = ({ mode, slot, data, props, publish }: WidgetComponentProps<PropsType>) => {
-  const value = data as ReturnType<typeof transform>;
-
   const interactive = props.interactive;
   const handleChange = useCallback(
     (v: boolean) => {
@@ -47,6 +46,7 @@ const Component = ({ mode, slot, data, props, publish }: WidgetComponentProps<Pr
     [interactive, publish]
   );
 
+  const [d, preview] = withPreview(mode, data as ReturnType<typeof transform>, false);
   return (
     <div className="flex h-full w-full flex-col py-2 select-none">
       <div className="mb-1 flex px-3">
@@ -57,9 +57,10 @@ const Component = ({ mode, slot, data, props, publish }: WidgetComponentProps<Pr
         </TruncateText>
       </div>
       <div className="relative grid flex-1 place-items-center">
-        {value != null && (
+        {d != null && (
           <Toggle
-            checked={value}
+            className={preview ? "opacity-25" : undefined}
+            checked={d}
             disabled={!interactive}
             onCheckedChange={handleChange}
           />

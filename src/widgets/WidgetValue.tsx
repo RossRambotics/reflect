@@ -12,6 +12,7 @@ import { EditorContainer } from "./parts/EditorContainer";
 import { EditorSectionHeader } from "./parts/EditorSectionHeader";
 import { EditorSwitchBlock } from "./parts/EditorSwitchBlock";
 import { Slot } from "./slot";
+import { withPreview } from "./utils";
 
 import type { DataChannelRecord, DataType } from "@2702rebels/wpidata/abstractions";
 import type { WidgetComponentProps, WidgetDescriptor, WidgetEditorProps } from "./types";
@@ -49,7 +50,7 @@ const transform = (dataType: DataType, records: ReadonlyArray<DataChannelRecord>
 };
 
 const Component = ({ mode, slot, data, props }: WidgetComponentProps<PropsType>) => {
-  const d = mode === "template" ? "..." : (data as ReturnType<typeof transform>);
+  const [d, preview] = withPreview(mode, data as ReturnType<typeof transform>, "Abc ... 123");
   return (
     <div className="flex h-full w-full flex-col py-2 select-none">
       <div className="mb-1 flex items-center justify-between gap-2 px-3">
@@ -63,6 +64,7 @@ const Component = ({ mode, slot, data, props }: WidgetComponentProps<PropsType>)
         <div
           className={cn(
             "mx-3 my-1 flex flex-auto flex-col items-center justify-center overflow-hidden text-lg font-semibold",
+            preview && "opacity-25",
             props.mono && "font-mono",
             props.alignment === "start" && "items-start",
             props.alignment === "end" && "items-end",
