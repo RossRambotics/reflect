@@ -200,7 +200,7 @@ const selectDashboard = (id: string) => {
 };
 
 function useDashboardHotKeys() {
-  useHotkeys("alt+d", () => workspaceActions.toggleDesignMode());
+  useHotkeys("alt+d", () => workspaceActions.toggleDesignMode(), { preventDefault: true });
   useHotkeys("alt+a", () => workspaceActions.selectDashboard("auto"));
   useHotkeys("alt+t", () => workspaceActions.selectDashboard("teleop"));
   useHotkeys("alt+1", () => workspaceActions.selectDashboardByKey(0));
