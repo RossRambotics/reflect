@@ -27,6 +27,7 @@ const numericFormat = z.object({
 const propsSchema = z.object({
   title: z.string().optional(),
   interactive: z.boolean().optional(),
+  vertical: z.boolean().default(false),
   valueFormat: numericFormat.optional(),
   min: z.number().default(-1),
   max: z.number().default(1),
@@ -46,6 +47,7 @@ const transform = (dataType: DataType, records: ReadonlyArray<DataChannelRecord>
 
 const Component = ({ mode, slot, data, props, publish }: WidgetComponentProps<PropsType>) => {
   const interactive = props.interactive;
+  const vertical = props.vertical;
   const handleChange = useCallback(
     (v: Array<number>) => {
       if (interactive && publish) {
@@ -78,24 +80,32 @@ const Component = ({ mode, slot, data, props, publish }: WidgetComponentProps<Pr
         </div>
       </div>
       {d != null && (
-        <div className={cn("mx-3 my-1 flex flex-auto flex-col justify-center gap-2", preview && "opacity-25")}>
-          <Slider
-            aria-label="Value"
-            value={[d]}
-            disabled={!interactive}
-            onValueChange={interactive ? handleChange : undefined}
-            min={props.min}
-            max={props.max}
-            step={props.step}
-          />
-          <div className="flex justify-between">
+        <div
+          className={cn(
+            "mx-3 my-1 flex flex-auto justify-center gap-2",
+            preview && "opacity-25",
+            props.vertical ? "flex-row items-center" : "flex-col"
+          )}>
+          <div className={cn("flex items-center", props.vertical ? "h-full" : "w-full")}>
+            <Slider
+              aria-label="Value"
+              orientation={props.vertical ? "vertical" : "horizontal"}
+              value={[d]}
+              disabled={!interactive}
+              onValueChange={interactive ? handleChange : undefined}
+              min={props.min}
+              max={props.max}
+              step={props.step}
+            />
+          </div>
+          <div className={cn("flex justify-between", props.vertical ? "h-full flex-col" : "w-full flex-row")}>
             <TruncateText className="font-mono text-xs">
-              {Format.default.number(props.min, {
+              {Format.default.number(props.vertical ? props.max : props.min, {
                 maximumFractionDigits: props.valueFormat?.maximumFractionDigits,
               })}
             </TruncateText>
             <TruncateText className="font-mono text-xs">
-              {Format.default.number(props.max, {
+              {Format.default.number(props.vertical ? props.min : props.max, {
                 maximumFractionDigits: props.valueFormat?.maximumFractionDigits,
               })}
             </TruncateText>
@@ -128,6 +138,16 @@ const Editor = ({ props, onPropsChange }: WidgetEditorProps<PropsType>) => {
           onPropsChange({
             ...props,
             interactive: v,
+          })
+        }
+      />
+      <EditorSwitchBlock
+        label="Vertical"
+        checked={props.vertical}
+        onCheckedChange={(v) =>
+          onPropsChange({
+            ...props,
+            vertical: v,
           })
         }
       />
@@ -221,6 +241,7 @@ export const WidgetSliderDescriptor: WidgetDescriptor<PropsType> = {
     schema: propsSchema,
     defaultValue: {
       interactive: false,
+      vertical: false,
       min: propsSchema.shape.min.def.defaultValue,
       max: propsSchema.shape.max.def.defaultValue,
       step: propsSchema.shape.step.def.defaultValue,
