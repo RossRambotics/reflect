@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 import { z } from "zod";
 
+import { Button } from "@ui/button";
 import { DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@ui/dropdown-menu";
 import { Input } from "@ui/input";
 import { InputNumber } from "@ui/input-number";
@@ -28,7 +29,7 @@ const propsSchema = z.object({
   aimingSpotPath: z.string(),
   targetPath: z.string(),
   style: z.enum(["default", "2026", "2026-empty", "2025", "2024", "2024-choreo"]),
-  orientation: z.enum(["0", "90", "180", "270"]),
+  orientation: z.enum(["auto", "0", "90", "180", "270"]),
   bumperSizeInch: z.number().positive().lte(35),
 });
 
@@ -87,7 +88,7 @@ const getField = (style: PropsType["style"]) => FIELDS[style === "default" ? "20
  * Robot frame of reference is (0, 0) at (left, bottom) with +Y -> up, +X -> left
  * Field frame of reference is (0, 0) at (left, top) with +Y -> down, +X -> left
  */
-const toField = (x: number, y: number, theta: number, field: FieldSpec, orientation: PropsType["orientation"]) => {
+const toField = (x: number, y: number, theta: number, field: FieldSpec, orientation: Exclude<PropsType["orientation"], "auto">) => {
   const [rw, rh, rx, ry] = field.image.rect;
   const { x: tx, y: ty } = field.translate;
   const fx = tx * x;
@@ -159,23 +160,37 @@ const Component = ({ data, props }: WidgetComponentProps<PropsType>) => {
   const ch2 = useDataChannel(normalizeSlot(props.aimingSpotPath));
   const ch3 = useDataChannel(normalizeSlot(props.targetPath));
 
+  // FMS channel for auto-alliance orientation
+  const fmsCh = useDataChannel("nt:/FMSInfo/*");
+
   const [pose2, setPose2] = useState<ReturnType<typeof toPose2d> | null>(null);
   const [pose3, setPose3] = useState<ReturnType<typeof toPose2d> | null>(null);
+  const [isRedAlliance, setIsRedAlliance] = useState<boolean | null>(null);
 
   const animationFps = useSettingsStore.use.animationFps();
 
   const updatePoses = useCallback(() => {
     setPose2(ch2?.records?.length ? toPose2d(ch2.records.at(-1)?.value, ch2.structuredType) : null);
     setPose3(ch3?.records?.length ? toPose2d(ch3.records.at(-1)?.value, ch3.structuredType) : null);
-  }, [ch2, ch3]);
+    if (fmsCh?.records?.length) {
+      const v = fmsCh.records.at(-1)?.value as Partial<{ IsRedAlliance: boolean }> | undefined;
+      setIsRedAlliance(v?.IsRedAlliance ?? null);
+    } else {
+      setIsRedAlliance(null);
+    }
+  }, [ch2, ch3, fmsCh]);
 
   useAnimationLoop(updatePoses, animationFps);
 
-  const [rx1, ry1, rtheta1] = d != null ? toField(d.pose.x, d.pose.y, d.pose.theta, field, props.orientation) : ZERO;
-  const [rx2, ry2] = pose2 != null ? toField(pose2.x, pose2.y, 0, field, props.orientation) : ZERO;
-  const [rx3, ry3] = pose3 != null ? toField(pose3.x, pose3.y, 0, field, props.orientation) : ZERO;
+  // When orientation is "auto": red alliance = 90° (portrait), blue = 270° (portrait)
+  const effectiveOrientation: Exclude<PropsType["orientation"], "auto"> =
+    props.orientation === "auto" ? (isRedAlliance === false ? "270" : "90") : props.orientation;
 
-  const portrait = props.orientation === "90" || props.orientation === "270";
+  const [rx1, ry1, rtheta1] = d != null ? toField(d.pose.x, d.pose.y, d.pose.theta, field, effectiveOrientation) : ZERO;
+  const [rx2, ry2] = pose2 != null ? toField(pose2.x, pose2.y, 0, field, effectiveOrientation) : ZERO;
+  const [rx3, ry3] = pose3 != null ? toField(pose3.x, pose3.y, 0, field, effectiveOrientation) : ZERO;
+
+  const portrait = effectiveOrientation === "90" || effectiveOrientation === "270";
   const aspectRatio = portrait ? 1 / field.image.aspect : field.image.aspect;
 
   // scale factor
@@ -198,9 +213,9 @@ const Component = ({ data, props }: WidgetComponentProps<PropsType>) => {
             style={portrait ? { minWidth: height } : { minWidth: width }}
             className={cn(
               "block",
-              props.orientation === "90" && "origin-bottom-left -translate-y-full rotate-90",
-              props.orientation === "270" && "origin-top-right -translate-x-full -rotate-90",
-              props.orientation === "180" && "rotate-180"
+              effectiveOrientation === "90" && "origin-bottom-left -translate-y-full rotate-90",
+              effectiveOrientation === "270" && "origin-top-right -translate-x-full -rotate-90",
+              effectiveOrientation === "180" && "rotate-180"
             )}
             src={field.url}
             alt="Field"
@@ -265,22 +280,42 @@ const Component = ({ data, props }: WidgetComponentProps<PropsType>) => {
   );
 };
 
-const Editor = ({ props, onPropsChange }: WidgetEditorProps<PropsType>) => {
+const Editor = ({ props, onPropsChange, slot }: WidgetEditorProps<PropsType>) => {
   return (
     <EditorContainer>
-      <EditorBlock label="Aiming spot path">
-        <Input
-          value={props.aimingSpotPath}
-          placeholder="e.g. nt:/SmartDashboard/Pose or NT:/SmartDashboard/Pose"
-          onChange={(e) => onPropsChange({ ...props, aimingSpotPath: e.target.value })}
-        />
+      <EditorBlock label="Aim Pose2d (Fuel Icon)">
+        <div className="flex gap-2">
+          <Input
+            value={props.aimingSpotPath}
+            placeholder="e.g. nt:/SmartDashboard/Pose or NT:/SmartDashboard/Pose"
+            onChange={(e) => onPropsChange({ ...props, aimingSpotPath: e.target.value })}
+            className="flex-1"
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!slot}
+            onClick={() => slot && onPropsChange({ ...props, aimingSpotPath: slot })}>
+            Copy from Slot
+          </Button>
+        </div>
       </EditorBlock>
-      <EditorBlock label="Autodrive target path">
-        <Input
-          value={props.targetPath}
-          placeholder="e.g. nt:/SmartDashboard/Pose or NT:/SmartDashboard/Pose"
-          onChange={(e) => onPropsChange({ ...props, targetPath: e.target.value })}
-        />
+      <EditorBlock label="Autodrive Pose2d (Green X Icon)">
+        <div className="flex gap-2">
+          <Input
+            value={props.targetPath}
+            placeholder="e.g. nt:/SmartDashboard/Pose or NT:/SmartDashboard/Pose"
+            onChange={(e) => onPropsChange({ ...props, targetPath: e.target.value })}
+            className="flex-1"
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!slot}
+            onClick={() => slot && onPropsChange({ ...props, targetPath: slot })}>
+            Copy from Slot
+          </Button>
+        </div>
       </EditorBlock>
       <EditorBlock label="Style">
         <Select
@@ -307,10 +342,11 @@ const Editor = ({ props, onPropsChange }: WidgetEditorProps<PropsType>) => {
             <SelectValue placeholder="Select orientation" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="auto">Auto (Alliance)</SelectItem>
             <SelectItem value="0">Landscape (0&deg;)</SelectItem>
             <SelectItem value="180">Landscape (180&deg;)</SelectItem>
-            <SelectItem value="90">Portrait (90&deg;)</SelectItem>
-            <SelectItem value="270">Portrait (270&deg;)</SelectItem>
+            <SelectItem value="90">Portrait (90&deg;) — Red</SelectItem>
+            <SelectItem value="270">Portrait (270&deg;) — Blue</SelectItem>
           </SelectContent>
         </Select>
       </EditorBlock>
@@ -339,10 +375,11 @@ const QuickMenu = ({ props, onPropsChange }: WidgetEditorProps<PropsType>) => {
       <DropdownMenuRadioGroup
         value={props.orientation}
         onValueChange={(v) => onPropsChange({ ...props, orientation: v as PropsType["orientation"] })}>
+        <DropdownMenuRadioItem value="auto">Auto (Alliance)</DropdownMenuRadioItem>
         <DropdownMenuRadioItem value="0">Landscape (0&deg;)</DropdownMenuRadioItem>
         <DropdownMenuRadioItem value="180">Landscape (180&deg;)</DropdownMenuRadioItem>
-        <DropdownMenuRadioItem value="90">Portrait (90&deg;)</DropdownMenuRadioItem>
-        <DropdownMenuRadioItem value="270">Portrait (270&deg;)</DropdownMenuRadioItem>
+        <DropdownMenuRadioItem value="90">Portrait (90&deg;) — Red</DropdownMenuRadioItem>
+        <DropdownMenuRadioItem value="270">Portrait (270&deg;) — Blue</DropdownMenuRadioItem>
       </DropdownMenuRadioGroup>
     </DropdownMenuContent>
   );
@@ -368,8 +405,11 @@ export const WidgetField2dx3Descriptor: WidgetDescriptor<PropsType> = {
       composite: ["Field2d"],
     },
   },
-  extraSlots: (props) =>
-    [props.aimingSpotPath, props.targetPath].map((s) => normalizeSlot(s)).filter((s): s is string => s != null),
+  extraSlots: (props) => {
+    const slots = [props.aimingSpotPath, props.targetPath].map((s) => normalizeSlot(s)).filter((s): s is string => s != null);
+    if (props.orientation === "auto") slots.push("nt:/FMSInfo/*");
+    return slots;
+  },
   component: (props) => <Component {...props} />,
   props: {
     schema: propsSchema,
@@ -377,7 +417,7 @@ export const WidgetField2dx3Descriptor: WidgetDescriptor<PropsType> = {
       aimingSpotPath: "",
       targetPath: "",
       style: "default",
-      orientation: "0",
+      orientation: "auto",
       bumperSizeInch: 32,
     },
     editor: (props) => <Editor {...props} />,

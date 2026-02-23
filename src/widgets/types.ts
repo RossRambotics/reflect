@@ -27,6 +27,8 @@ export type WidgetEditorProps<P> = {
   onPropsChange: (v: P) => void;
   /** Indicates that editor is disabled */
   disabled?: boolean;
+  /** Primary slot binding for this widget */
+  slot?: string;
 };
 
 export type WidgetDescriptor<P = unknown> = Readonly<{
