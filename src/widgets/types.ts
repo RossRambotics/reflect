@@ -77,6 +77,8 @@ export type WidgetDescriptor<P = unknown> = Readonly<{
     /** Render function for custom properties quick menu */
     menu?: (props: WidgetEditorProps<P>) => React.ReactNode;
   }>;
+  /** Returns additional slot paths derived from widget props (for subscription) */
+  extraSlots?: (props: P) => ReadonlyArray<string>;
   /** Spotlight background */
   spotlight?: boolean;
   /** Season-specific widget. */
