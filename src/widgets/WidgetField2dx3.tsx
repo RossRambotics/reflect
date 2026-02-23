@@ -19,7 +19,6 @@ import { useDataChannel } from "../stores/Data";
 import { useSettingsStore } from "../stores/Settings";
 import { EditorBlock } from "./parts/EditorBlock";
 import { EditorContainer } from "./parts/EditorContainer";
-import { RobotTop } from "./parts/RobotTop";
 import { toPose2d } from "./utils";
 
 import type { DataChannelRecord, DataType, StructuredTypeDescriptor } from "@2702rebels/wpidata/abstractions";
@@ -117,6 +116,15 @@ const transform = (
   return {
     pose: toPose2d(records.at(-1)?.value, structuredType),
   };
+};
+
+const RobotBoxIcon = (props: React.SVGAttributes<SVGSVGElement>) => {
+  const { strokeWidth, ...rest } = props;
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" {...(rest as any)}>
+      <rect x="5" y="5" width="90" height="90" strokeWidth={strokeWidth ?? 8} rx="4" />
+    </svg>
+  );
 };
 
 const AimingSpotIcon = (props: React.SVGAttributes<SVGSVGElement>) => (
@@ -266,9 +274,9 @@ const Component = ({ data, props }: WidgetComponentProps<PropsType>) => {
                   height: robotH,
                   transform: `translate(${rx1 * sx}px, ${ry1 * sy}px)`,
                 }}>
-                <RobotTop
-                  bumperColor="#a1000f"
-                  className="fill-gray-800/80 stroke-gray-100/80"
+                <RobotBoxIcon
+                  className="stroke-green-400 fill-green-400/20"
+                  strokeWidth={18}
                   style={{ transform: `rotate(${rtheta1}deg)` }}
                 />
               </div>
