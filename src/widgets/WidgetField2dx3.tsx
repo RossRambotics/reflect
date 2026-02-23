@@ -118,6 +118,22 @@ const transform = (
   };
 };
 
+const AimingSpotIcon = (props: React.SVGAttributes<SVGSVGElement>) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" {...props}>
+    <circle cx="50" cy="50" r="38" strokeWidth="10" />
+    <circle cx="50" cy="50" r="8" />
+  </svg>
+);
+
+const TargetIcon = (props: React.SVGAttributes<SVGSVGElement>) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" {...props}>
+    <line x1="15" y1="15" x2="85" y2="85" strokeWidth="12" strokeLinecap="round" />
+    <line x1="85" y1="15" x2="15" y2="85" strokeWidth="12" strokeLinecap="round" />
+  </svg>
+);
+
+const ICON_SIZE_PX = 24;
+
 /** Normalizes a slot string: lowercases the source prefix and returns undefined for empty strings. */
 const normalizeSlot = (slot: string): string | undefined => {
   if (!slot) return undefined;
@@ -156,8 +172,8 @@ const Component = ({ data, props }: WidgetComponentProps<PropsType>) => {
   useAnimationLoop(updatePoses, animationFps);
 
   const [rx1, ry1, rtheta1] = d != null ? toField(d.pose.x, d.pose.y, d.pose.theta, field, props.orientation) : ZERO;
-  const [rx2, ry2, rtheta2] = pose2 != null ? toField(pose2.x, pose2.y, pose2.theta, field, props.orientation) : ZERO;
-  const [rx3, ry3, rtheta3] = pose3 != null ? toField(pose3.x, pose3.y, pose3.theta, field, props.orientation) : ZERO;
+  const [rx2, ry2] = pose2 != null ? toField(pose2.x, pose2.y, 0, field, props.orientation) : ZERO;
+  const [rx3, ry3] = pose3 != null ? toField(pose3.x, pose3.y, 0, field, props.orientation) : ZERO;
 
   const portrait = props.orientation === "90" || props.orientation === "270";
   const aspectRatio = portrait ? 1 / field.image.aspect : field.image.aspect;
@@ -194,41 +210,33 @@ const Component = ({ data, props }: WidgetComponentProps<PropsType>) => {
           <>
             <canvas className={cn("absolute inset-0")} width={width} height={height} />
 
-            {/* Pose 2: Aiming spot */}
+            {/* Pose 2: Aiming spot — circle icon */}
             {pose2 != null && (
               <div
                 className="absolute"
                 style={{
-                  left: -robotW / 2,
-                  top: -robotH / 2,
-                  width: robotW,
-                  height: robotH,
+                  left: -ICON_SIZE_PX / 2,
+                  top: -ICON_SIZE_PX / 2,
+                  width: ICON_SIZE_PX,
+                  height: ICON_SIZE_PX,
                   transform: `translate(${rx2 * sx}px, ${ry2 * sy}px)`,
                 }}>
-                <RobotTop
-                  bumperColor="#0000ff"
-                  className="fill-gray-800/80 stroke-gray-100/80"
-                  style={{ transform: `rotate(${rtheta2}deg)` }}
-                />
+                <AimingSpotIcon className="stroke-yellow-400 fill-yellow-400" />
               </div>
             )}
 
-            {/* Pose 3: Autodrive target */}
+            {/* Pose 3: Autodrive target — X icon */}
             {pose3 != null && (
               <div
                 className="absolute"
                 style={{
-                  left: -robotW / 2,
-                  top: -robotH / 2,
-                  width: robotW,
-                  height: robotH,
+                  left: -ICON_SIZE_PX / 2,
+                  top: -ICON_SIZE_PX / 2,
+                  width: ICON_SIZE_PX,
+                  height: ICON_SIZE_PX,
                   transform: `translate(${rx3 * sx}px, ${ry3 * sy}px)`,
                 }}>
-                <RobotTop
-                  bumperColor="#00aa00"
-                  className="fill-gray-800/80 stroke-gray-100/80"
-                  style={{ transform: `rotate(${rtheta3}deg)` }}
-                />
+                <TargetIcon className="stroke-green-400" />
               </div>
             )}
 
