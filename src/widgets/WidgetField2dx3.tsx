@@ -123,6 +123,7 @@ const RobotBoxIcon = (props: React.SVGAttributes<SVGSVGElement>) => {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" {...(rest as any)}>
       <rect x="5" y="5" width="90" height="90" strokeWidth={strokeWidth ?? 8} rx="4" />
+      <circle cx="50" cy="20" r="20" style={{ fill: "#4ade80" }} stroke="none" />
     </svg>
   );
 };
@@ -138,6 +139,7 @@ const TargetIcon = (props: React.SVGAttributes<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" {...props}>
     <line x1="15" y1="15" x2="85" y2="85" strokeWidth="12" strokeLinecap="round" />
     <line x1="85" y1="15" x2="15" y2="85" strokeWidth="12" strokeLinecap="round" />
+    <circle cx="50" cy="20" r="10" style={{ fill: "#4ade80" }} stroke="none" />
   </svg>
 );
 
@@ -196,7 +198,7 @@ const Component = ({ data, props }: WidgetComponentProps<PropsType>) => {
 
   const [rx1, ry1, rtheta1] = d != null ? toField(d.pose.x, d.pose.y, d.pose.theta, field, effectiveOrientation) : ZERO;
   const [rx2, ry2] = pose2 != null ? toField(pose2.x, pose2.y, 0, field, effectiveOrientation) : ZERO;
-  const [rx3, ry3] = pose3 != null ? toField(pose3.x, pose3.y, 0, field, effectiveOrientation) : ZERO;
+  const [rx3, ry3, rtheta3] = pose3 != null ? toField(pose3.x, pose3.y, pose3.theta, field, effectiveOrientation) : ZERO;
 
   const portrait = effectiveOrientation === "90" || effectiveOrientation === "270";
   const aspectRatio = portrait ? 1 / field.image.aspect : field.image.aspect;
@@ -259,7 +261,7 @@ const Component = ({ data, props }: WidgetComponentProps<PropsType>) => {
                   height: ICON_SIZE_PX,
                   transform: `translate(${rx3 * sx}px, ${ry3 * sy}px)`,
                 }}>
-                <TargetIcon className="stroke-green-400" />
+                <TargetIcon className="stroke-green-400" style={{ transform: `rotate(${rtheta3}deg)` }} />
               </div>
             )}
 
