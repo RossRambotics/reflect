@@ -264,7 +264,7 @@ const Component = ({ data, props }: WidgetComponentProps<PropsType>) => {
             )}
 
             {/* Pose 3: Autodrive target — X icon */}
-            {pose3 != null && (
+            {pose3 != null && (pose3.x > 0 || pose3.y > 0) && (
               <div
                 className="absolute"
                 style={{
@@ -279,7 +279,7 @@ const Component = ({ data, props }: WidgetComponentProps<PropsType>) => {
             )}
 
             {/* Pose 4: Auto start — white X with center dot */}
-            {pose4 != null && (
+            {pose4 != null && (pose4.x > 0 || pose4.y > 0) && (
               <div
                 className="absolute"
                 style={{
