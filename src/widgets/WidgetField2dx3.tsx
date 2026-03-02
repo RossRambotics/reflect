@@ -27,6 +27,7 @@ import type { WidgetComponentProps, WidgetDescriptor, WidgetEditorProps } from "
 const propsSchema = z.object({
   aimingSpotPath: z.string(),
   targetPath: z.string(),
+  autoStartPosePath: z.string(),
   style: z.enum(["default", "2026", "2026-empty", "2025", "2024", "2024-choreo"]),
   orientation: z.enum(["auto", "0", "90", "180", "270"]),
   bumperSizeInch: z.number().positive().lte(35),
@@ -143,6 +144,14 @@ const TargetIcon = (props: React.SVGAttributes<SVGSVGElement>) => (
   </svg>
 );
 
+const AutoStartIcon = (props: React.SVGAttributes<SVGSVGElement>) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" {...props}>
+    <line x1="15" y1="15" x2="85" y2="85" strokeWidth="12" strokeLinecap="round" />
+    <line x1="85" y1="15" x2="15" y2="85" strokeWidth="12" strokeLinecap="round" />
+    <circle cx="50" cy="20" r="10"  />
+  </svg>
+);
+
 const ICON_SIZE_PX = 24;
 
 /** Normalizes a slot string: lowercases the source prefix and returns undefined for empty strings. */
@@ -169,12 +178,14 @@ const Component = ({ data, props }: WidgetComponentProps<PropsType>) => {
   // Normalize source prefix to lowercase (user may type "NT:" but internal format is "nt:")
   const ch2 = useDataChannel(normalizeSlot(props.aimingSpotPath));
   const ch3 = useDataChannel(normalizeSlot(props.targetPath));
+  const ch4 = useDataChannel(normalizeSlot(props.autoStartPosePath));
 
   // FMS channel for auto-alliance orientation
   const fmsCh = useDataChannel("nt:/FMSInfo/*");
 
   const [pose2, setPose2] = useState<ReturnType<typeof toPose2d> | null>(null);
   const [pose3, setPose3] = useState<ReturnType<typeof toPose2d> | null>(null);
+  const [pose4, setPose4] = useState<ReturnType<typeof toPose2d> | null>(null);
   const [isRedAlliance, setIsRedAlliance] = useState<boolean | null>(null);
 
   const animationFps = useSettingsStore.use.animationFps();
@@ -182,13 +193,14 @@ const Component = ({ data, props }: WidgetComponentProps<PropsType>) => {
   const updatePoses = useCallback(() => {
     setPose2(ch2?.records?.length ? toPose2d(ch2.records.at(-1)?.value, ch2.structuredType) : null);
     setPose3(ch3?.records?.length ? toPose2d(ch3.records.at(-1)?.value, ch3.structuredType) : null);
+    setPose4(ch4?.records?.length ? toPose2d(ch4.records.at(-1)?.value, ch4.structuredType) : null);
     if (fmsCh?.records?.length) {
       const v = fmsCh.records.at(-1)?.value as Partial<{ IsRedAlliance: boolean }> | undefined;
       setIsRedAlliance(v?.IsRedAlliance ?? null);
     } else {
       setIsRedAlliance(null);
     }
-  }, [ch2, ch3, fmsCh]);
+  }, [ch2, ch3, ch4, fmsCh]);
 
   useAnimationLoop(updatePoses, animationFps);
 
@@ -199,6 +211,7 @@ const Component = ({ data, props }: WidgetComponentProps<PropsType>) => {
   const [rx1, ry1, rtheta1] = d != null ? toField(d.pose.x, d.pose.y, d.pose.theta, field, effectiveOrientation) : ZERO;
   const [rx2, ry2] = pose2 != null ? toField(pose2.x, pose2.y, 0, field, effectiveOrientation) : ZERO;
   const [rx3, ry3, rtheta3] = pose3 != null ? toField(pose3.x, pose3.y, pose3.theta, field, effectiveOrientation) : ZERO;
+  const [rx4, ry4, rtheta4] = pose4 != null ? toField(pose4.x, pose4.y, pose4.theta, field, effectiveOrientation) : ZERO;
 
   const portrait = effectiveOrientation === "90" || effectiveOrientation === "270";
   const aspectRatio = portrait ? 1 / field.image.aspect : field.image.aspect;
@@ -265,6 +278,21 @@ const Component = ({ data, props }: WidgetComponentProps<PropsType>) => {
               </div>
             )}
 
+            {/* Pose 4: Auto start — white X with center dot */}
+            {pose4 != null && (
+              <div
+                className="absolute"
+                style={{
+                  left: -ICON_SIZE_PX / 2,
+                  top: -ICON_SIZE_PX / 2,
+                  width: ICON_SIZE_PX,
+                  height: ICON_SIZE_PX,
+                  transform: `translate(${rx4 * sx}px, ${ry4 * sy}px)`,
+                }}>
+                <AutoStartIcon className="stroke-white fill-white" style={{ transform: `rotate(${rtheta4}deg)` }} />
+              </div>
+            )}
+
             {/* Pose 1: Robot — RobotTop icon (from primary slot) */}
             {d != null && (
               <div
@@ -323,6 +351,23 @@ const Editor = ({ props, onPropsChange, slot }: WidgetEditorProps<PropsType>) =>
             size="sm"
             disabled={!slot}
             onClick={() => slot && onPropsChange({ ...props, targetPath: slot })}>
+            Copy from Slot
+          </Button>
+        </div>
+      </EditorBlock>
+      <EditorBlock label="Auto Start Pose2d (White X Icon)">
+        <div className="flex gap-2">
+          <Input
+            value={props.autoStartPosePath}
+            placeholder="e.g. nt:/SmartDashboard/Pose or NT:/SmartDashboard/Pose"
+            onChange={(e) => onPropsChange({ ...props, autoStartPosePath: e.target.value })}
+            className="flex-1"
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!slot}
+            onClick={() => slot && onPropsChange({ ...props, autoStartPosePath: slot })}>
             Copy from Slot
           </Button>
         </div>
@@ -416,7 +461,7 @@ export const WidgetField2dx3Descriptor: WidgetDescriptor<PropsType> = {
     },
   },
   extraSlots: (props) => {
-    const slots = [props.aimingSpotPath, props.targetPath].map((s) => normalizeSlot(s)).filter((s): s is string => s != null);
+    const slots = [props.aimingSpotPath, props.targetPath, props.autoStartPosePath].map((s) => normalizeSlot(s)).filter((s): s is string => s != null);
     if (props.orientation === "auto") slots.push("nt:/FMSInfo/*");
     return slots;
   },
@@ -426,6 +471,7 @@ export const WidgetField2dx3Descriptor: WidgetDescriptor<PropsType> = {
     defaultValue: {
       aimingSpotPath: "",
       targetPath: "",
+      autoStartPosePath: "",
       style: "default",
       orientation: "auto",
       bumperSizeInch: 32,
